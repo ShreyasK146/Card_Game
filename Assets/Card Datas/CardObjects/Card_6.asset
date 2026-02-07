@@ -17,5 +17,5 @@ MonoBehaviour:
   cardCost: 2
   cardPower: 3
   ability:
-    abilityName: DestroyOpponentCardInPlay
+    abilityName: Destroy opponent card In play
     abilityValue: 2

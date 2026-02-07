@@ -17,5 +17,5 @@ MonoBehaviour:
   cardCost: 2
   cardPower: 3
   ability:
-    abilityName: ReduceOpponentTimeNextRound
+    abilityName: Reduce opponent time next round
     abilityValue: 2

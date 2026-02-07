@@ -1,21 +1,24 @@
 using Photon.Pun;
 using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
 
 public class MainMenu : MonoBehaviour
 {
-    [SerializeField] GameObject LoadingScreen;
+    [SerializeField] GameObject networkManager;
+    [SerializeField] GameObject statusUI;
     public void QuickMatch()
     {
-        PhotonNetwork.ConnectUsingSettings();
-        LoadingScreen.SetActive(true);
-        PhotonNetwork.JoinRandomRoom();
+        statusUI.SetActive(true);
+        networkManager.SetActive(true);
         gameObject.SetActive(false);
-        LoadingScreen.SetActive(false);
     }
 
     public void QuitGame()
     {
         Application.Quit();
+        #if UNITY_EDITOR
+                EditorApplication.isPlaying = false;
+        #endif
     }
 }

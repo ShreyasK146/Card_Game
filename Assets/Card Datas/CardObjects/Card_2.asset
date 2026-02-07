@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: Card_2
   m_EditorClassIdentifier: Assembly-CSharp::CardData
   id: 2
-  cardName: name1
+  cardName: name2
   cardCost: 2
   cardPower: 3
   ability:
-    abilityName: StealPoints
+    abilityName: Steal Points
     abilityValue: 2
