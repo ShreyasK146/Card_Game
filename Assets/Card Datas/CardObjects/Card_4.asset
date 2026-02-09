@@ -15,7 +15,7 @@ MonoBehaviour:
   id: 4
   cardName: name4
   cardCost: 2
-  cardPower: 3
+  cardPower: 4
   ability:
-    abilityName: Card+1
+    abilityName: 1
     abilityValue: 2

@@ -7,10 +7,12 @@ public class MainMenu : MonoBehaviour
 {
     [SerializeField] GameObject networkManager;
     [SerializeField] GameObject statusUI;
+    //[SerializeField] GameObject scoreManager;
     public void QuickMatch()
     {
         statusUI.SetActive(true);
         networkManager.SetActive(true);
+        //scoreManager.SetActive(true);
         gameObject.SetActive(false);
     }
 

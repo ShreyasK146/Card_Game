@@ -1,5 +1,16 @@
 using UnityEngine;
 
+
+public enum AbilityType
+{
+    GainPoints,
+    StealPoints,
+    DoublePower,
+    DrawExtraCard,
+    DiscardOpponentRandomCard,
+    DestroyOpponentCardInPlay
+}
+
 [CreateAssetMenu(fileName = "Card_",menuName = "CreateObject/CardObject")]
 public class CardData : ScriptableObject
 {
@@ -12,6 +23,6 @@ public class CardData : ScriptableObject
 [System.Serializable]
 public class AbilityData
 {
-    public string abilityName;
+    public AbilityType abilityName;
     public int abilityValue;
 }

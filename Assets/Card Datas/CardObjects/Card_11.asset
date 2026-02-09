@@ -15,7 +15,7 @@ MonoBehaviour:
   id: 11
   cardName: name1
   cardCost: 1
-  cardPower: 3
+  cardPower: 11
   ability:
     abilityName: StealPointsx2
     abilityValue: 2

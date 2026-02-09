@@ -15,7 +15,7 @@ MonoBehaviour:
   id: 7
   cardName: name1
   cardCost: 1
-  cardPower: 3
+  cardPower: 7
   ability:
     abilityName: Skip opponent turn
     abilityValue: 2

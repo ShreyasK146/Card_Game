@@ -15,7 +15,7 @@ MonoBehaviour:
   id: 8
   cardName: name1
   cardCost: 2
-  cardPower: 3
+  cardPower: 8
   ability:
-    abilityName: Reduce opponent time next round
+    abilityName: 1
     abilityValue: 2

@@ -15,7 +15,7 @@ MonoBehaviour:
   id: 6
   cardName: name1
   cardCost: 2
-  cardPower: 3
+  cardPower: 6
   ability:
-    abilityName: Destroy opponent card In play
+    abilityName: 1
     abilityValue: 2
