@@ -15,7 +15,7 @@ MonoBehaviour:
   id: 9
   cardName: Master Thief
   cardCost: 3
-  cardPower: 9
+  cardPower: 8
   ability:
-    abilityName: 8
-    abilityValue: 5
+    abilityName: 3
+    abilityValue: 2

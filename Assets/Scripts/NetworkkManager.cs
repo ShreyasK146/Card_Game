@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using Photon.Pun;
 using Photon.Realtime;
 using System;
@@ -8,20 +9,31 @@ using UnityEngine;
 public class NetworkkManager : MonoBehaviourPunCallbacks
 {
     public static NetworkkManager Instance;
-    [SerializeField] GameObject statusUI;
-    [SerializeField] private GameObject MainScene;
-    [SerializeField] private TextMeshProUGUI statusText;
+
+
+    public GameObject statusUI;
+    public GameObject MainScene;
+    public TextMeshProUGUI statusText;
+    [HideInInspector] public bool gameStarted = false;
+
     private int maxPlayers = 2;
     private bool isReconnecting = false;
-    [HideInInspector] public bool gameStarted = false;
+
     private PhotonView photonView;
+  
+  
+
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            DontDestroyOnLoad(statusUI);
+
+            if (statusUI != null)
+            {
+                DontDestroyOnLoad(statusUI);
+            }
         }
         else
         {
@@ -29,11 +41,13 @@ public class NetworkkManager : MonoBehaviourPunCallbacks
         }
         photonView = GetComponent<PhotonView>();
     }
+
     private void Start()
     {
         PhotonNetwork.AutomaticallySyncScene = true;
         PhotonNetwork.ConnectUsingSettings();
     }
+
     public override void OnConnectedToMaster()
     {
         if (PhotonNetwork.InRoom)
@@ -142,13 +156,42 @@ public class NetworkkManager : MonoBehaviourPunCallbacks
             case "scoreUpdate":
                 HandleScoreUpdateMessage(jsonMessage);
                 break;
+            case "gameEnd":
+                HandleEndGameMessage(jsonMessage);
+                break;
+            //case "abilityExecute":
+            //    HandleAbilityExecuteMessage(jsonMessage);
+            //    break;
 
+        }
+    }
+
+    //private void HandleAbilityExecuteMessage(string jsonMessage)
+    //{
+    //    AbilityExecuteMessage msg = JsonUtility.FromJson<AbilityExecuteMessage>(jsonMessage);
+
+    //    // Only execute on the client that didn't send it
+      
+    //    AbilityManager.Instance.ExecuteAbilityFromNetwork(msg.playerId, msg.abilityName, msg.abilityValue, msg.cardPower);
+        
+    //}
+
+    private void HandleEndGameMessage(string jsonMessage)
+    {
+        GameEndMessage message = JsonUtility.FromJson<GameEndMessage>(jsonMessage);
+        //ScoreManager.Instance.AnnounceResultFromNetwork(message.action, message.message);
+        ScoreManager scoreManager = FindFirstObjectByType<ScoreManager>();
+
+        if (scoreManager != null)
+        {
+            scoreManager.AnnounceResultFromNetwork(message.action, message.message);
         }
     }
 
     private void HandleScoreUpdateMessage(string jsonMessage)
     {
         ScoreUpdateMessage msg = JsonUtility.FromJson<ScoreUpdateMessage>(jsonMessage);
+        //ScoreManager.Instance.AddScoreFromNetwork(msg.playerId, msg.pointsEarned);
         ScoreManager scoreManager = FindFirstObjectByType<ScoreManager>();
 
         if(scoreManager != null)
@@ -170,6 +213,7 @@ public class NetworkkManager : MonoBehaviourPunCallbacks
         if(msg.senderActorNumber != PhotonNetwork.LocalPlayer.ActorNumber)
         {
             OpponentBoardDisplay opponentBoard = FindFirstObjectByType<OpponentBoardDisplay>();
+            
             if (opponentBoard != null)
             {
                 opponentBoard.UpdateOpponentBoard(msg.cardCount, msg.availableCost);
@@ -179,7 +223,7 @@ public class NetworkkManager : MonoBehaviourPunCallbacks
     private void HandleRevealCardsMessage(string jsonMessage)
     {
         RevealCardsMessage msg = JsonUtility.FromJson<RevealCardsMessage>(jsonMessage);
-        Debug.Log($"Received reveal cards from {msg.playerId}");
+        Debug.Log($"Received reveal cards from {msg.playerId}");    
 
         RevealManager.Instance.ReceiveOpponentCards(msg.playerId, msg.cardIds);
     }
@@ -246,26 +290,17 @@ public class RevealCardsMessage
 }
 
 [System.Serializable]
-public class InitiativeMessage
+public class GameEndMessage
 {
-    public string action = "initiative";
-    public string playerId;
-    public int score;
+    public string action = "gameEnd";
+    public string message;
 }
-
-[System.Serializable]
-public class RevealSequenceMessage
-{
-    public string action = "revealSequence";
-    public string playerId;
-    public int cardId;
-    public int cardIndex; // Which card in sequence (0, 1, 2...)
-    public int cardPower;
-}
-
-[System.Serializable]
-public class ReadyForNextRevealMessage
-{
-    public string action = "readyForNextReveal";
-    public string playerId;
-}
+//[System.Serializable]
+//public class AbilityExecuteMessage
+//{
+//    public string action = "abilityExecute";
+//    public string playerId;
+//    public string abilityName;
+//    public int abilityValue;
+//    public int cardPower;
+//}

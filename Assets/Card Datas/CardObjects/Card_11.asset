@@ -15,7 +15,7 @@ MonoBehaviour:
   id: 11
   cardName: Vandal
   cardCost: 3
-  cardPower: 10
+  cardPower: 12
   ability:
-    abilityName: 5
+    abilityName: 8
     abilityValue: 2

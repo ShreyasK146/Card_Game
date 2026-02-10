@@ -15,7 +15,7 @@ MonoBehaviour:
   id: 3
   cardName: Pickpocket
   cardCost: 1
-  cardPower: 3
+  cardPower: 2
   ability:
-    abilityName: 2
+    abilityName: 1
     abilityValue: 2

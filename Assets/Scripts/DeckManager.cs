@@ -10,27 +10,25 @@ public class DeckManager : MonoBehaviour
     public static DeckManager Instance;
     public List<CardData> allCardsData;
 
-    public List<CardData> cardInDeck = new List<CardData>(); // these are in deck
+    public List<CardData> cardInDeck = new List<CardData>(); // these are in deck(12 cards for each)
     public List<CardData> cardInHand = new List<CardData>(); // these are in hand
     public List<CardData> selectedCards = new List<CardData>(); // these are selected card to play 
-    public List<CardData> foldedCards = new List<CardData>();
-    public List<CardData> allPlayedCards = new List<CardData>();
-
-    //public List<CardData> newCardsThisTurn = new List<CardData>();
+    public List<CardData> foldedCards = new List<CardData>(); // folded cards that will be revealed after both end turn
+    public List<CardData> allPlayedCards = new List<CardData>(); // this is used to make sure cards are accumulated correctly after each round
 
     [SerializeField] GameObject cardGameObject;
-    [SerializeField] private Transform contentTransformForCardsInDeck;
-    [SerializeField] public Transform contentTransformForFoldedCards;
-
+    [SerializeField] private Transform contentTransformForCardsInHand; 
+    [SerializeField] private Transform contentTransformForCardsInPlayerArea; 
     [SerializeField] TextMeshProUGUI availableCostText;
     public TextMeshProUGUI opponentavailableCostText;
-
     public Button playCardButton;
     public Button endTurnButton;
-    private int totalCardCostUsedInCurrentRound = 0;
+
+    private int totalCardCostUsedInCurrentRound = 0; 
     private int selectedCardCost = 0;
-    public int displayedCardCount = 0;
+    //public int displayedCardCount = 0;
     int foldedCardCount = 0;
+    int randomizeCalled = 0;
 
 
     void Awake()
@@ -60,29 +58,19 @@ public class DeckManager : MonoBehaviour
     {
         playCardButton.gameObject.SetActive(false);
         playCardButton.onClick.AddListener(PlayCardButtonClicked);
-        //GameEvents.instance.GameStarted(new List<string> { "Player1", "Player2" });
+   
     }
 
-    private void Update()
-    {
-        //if (Input.GetKeyDown(KeyCode.S))
-        //{
-        //    string myId = PhotonNetwork.LocalPlayer.ActorNumber.ToString();
-        //    if(ScoreManager.Instance != null)
-        //        ScoreManager.Instance.AddScore(myId, 5);
-        //}
-    }
     public void HandleGameStart(List<string> playerids)
     {
-        //newTurn = true;
-        displayedCardCount = 0;
+        //displayedCardCount = 0;
         TurnManager.Instance.turnText.text = "1/6";
-        
         cardInDeck = new List<CardData>(allCardsData);
 
-        RandomizeCardSelection(); // maybe need to remove this because what if all selected cards have cost > 1 at beginning?
-
+        RandomizeCardSelection(); // only first 5 cards are randomized initially 
         DrawCards(3); // initial 3 card drawing
+        RandomizeCardSelection(); // randomizing cards from 4 to 12
+
         availableCostText.text = "1";
         opponentavailableCostText.text = "1";
         ShowCardsInHand();
@@ -94,36 +82,30 @@ public class DeckManager : MonoBehaviour
             totalCardCostUsedInCurrentRound = 0;
             availableCostText.text = turnNumber.ToString();
             opponentavailableCostText.text = turnNumber.ToString();
-            //foldedCards.Clear();
-            //newCardsThisTurn.Clear();
-            DrawCards(1); // 
+            DrawCards(1); // Drwaing 1 card per turn
             RefreshCardsInHand();
-            //RefreshCardsInPlayerCardArea();
+
         }
     }
 
-
-
     public void PlayCardButtonClicked()
     {
-        //newTurn = false;
-        //newCardsThisTurn.Clear();
+        //normal foreach would give error because of how enumeration works so had to use normal one with reverse. maybe there's way
         for (int i = selectedCards.Count - 1; i >= 0; i--)
         {
             foldedCards.Add(selectedCards[i]);
-            //newCardsThisTurn.Add(selectedCards[i]);
             allPlayedCards.Add(selectedCards[i]);
             cardInHand.Remove(selectedCards[i]);
         }
-        totalCardCostUsedInCurrentRound += selectedCardCost;
-        
+
+        totalCardCostUsedInCurrentRound += selectedCardCost; 
         selectedCards.Clear();
         RefreshCardsInHand();
         RefreshCardsInPlayerCardArea();
         
-
         playCardButton.gameObject.SetActive(false);
         availableCostText.text = (TurnManager.Instance.currentTurn - totalCardCostUsedInCurrentRound).ToString();
+
         GameEvents.instance.CardFolded(foldedCards);
         SyncBoardMessage msg = new SyncBoardMessage
         {
@@ -137,23 +119,16 @@ public class DeckManager : MonoBehaviour
         endTurnButton.interactable =true;
     }
 
-    public void RefreshCardsInPlayerCardArea()
+    public void RefreshCardsInPlayerCardArea() 
     {
-        //if(!newTurn)
-        //{
-        //    foreach (Transform transform in contentTransformForFoldedCards)
-        //    {
-        //        Destroy(transform.gameObject);
-        //    }
-        //}
-        int currentDisplayCount = contentTransformForFoldedCards.childCount;
+        int currentDisplayCount = contentTransformForCardsInPlayerArea.childCount;
         foldedCardCount = 0;
-        // Display from allPlayedCards (not foldedCards!)
+       
         for (int i = currentDisplayCount; i < allPlayedCards.Count; i++)
         {
-            GameObject card = GameObject.Instantiate(cardGameObject, contentTransformForFoldedCards);
+            GameObject card = GameObject.Instantiate(cardGameObject, contentTransformForCardsInPlayerArea);
             var cardObj = card.GetComponent<CardSelectHandler>();
-
+            //player card shuld be visible in player area
             cardObj.costText.text = allPlayedCards[i].cardCost.ToString();
             cardObj.powerText.text = allPlayedCards[i].cardPower.ToString();
             cardObj.abilityText.text = allPlayedCards[i].cardName;
@@ -165,13 +140,13 @@ public class DeckManager : MonoBehaviour
 
     public void RefreshCardsInHand()
     {
-        foreach (Transform transform in contentTransformForCardsInDeck)
+        foreach (Transform transform in contentTransformForCardsInHand)
         {
             Destroy(transform.gameObject);
         }
         foreach (var obj in cardInHand)
         {
-            GameObject card = GameObject.Instantiate(cardGameObject, contentTransformForCardsInDeck);
+            GameObject card = GameObject.Instantiate(cardGameObject, contentTransformForCardsInHand);
             var cardObj = card.GetComponent<CardSelectHandler>();
             cardObj.costText.text = obj.cardCost.ToString();
             cardObj.powerText.text = obj.cardPower.ToString();
@@ -180,11 +155,11 @@ public class DeckManager : MonoBehaviour
         }
     }
 
-    public void ShowCardsInHand()
+    public void ShowCardsInHand() 
     {
         foreach (var obj in cardInHand)
         {
-            GameObject card = GameObject.Instantiate(cardGameObject, contentTransformForCardsInDeck);
+            GameObject card = GameObject.Instantiate(cardGameObject, contentTransformForCardsInHand);
             var cardObj = card.GetComponent<CardSelectHandler>();
             cardObj.costText.text = obj.cardCost.ToString();
             cardObj.powerText.text = obj.cardPower.ToString();
@@ -195,9 +170,8 @@ public class DeckManager : MonoBehaviour
 
     public void DrawCards(int cardCount)
     {
-        Debug.Log(cardInDeck.Count);
         int i = 0;
-        while(i < cardCount && i < cardInDeck.Count && cardInHand.Count < 5)
+        while(i < cardCount && i < cardInDeck.Count && cardInHand.Count < 5) // can make adjustment in calls easily if we want to maintain 5 cards always in hand
         {
             CardData card = cardInDeck[i];
             cardInHand.Add(card);
@@ -209,42 +183,55 @@ public class DeckManager : MonoBehaviour
 
     private void RandomizeCardSelection()
     {
-        for (int i = 0; i < 5; i++) // for now swap only first 5
+        if(randomizeCalled == 0)
         {
-            CardData temp = cardInDeck[i];
-            int randomIndexToSwap = Random.Range(i, 5);
-            cardInDeck[i] = cardInDeck[randomIndexToSwap];
-            cardInDeck[randomIndexToSwap] = temp;
+            for (int i = 0; i < 5; i++) 
+            {
+                CardData temp = cardInDeck[i];
+                int randomIndexToSwap = Random.Range(i, 5);// for now swap only first 5
+                cardInDeck[i] = cardInDeck[randomIndexToSwap];
+                cardInDeck[randomIndexToSwap] = temp;
+            }
+            randomizeCalled = 1;
         }
+        else
+        {
+            for (int i = 3; i < cardInDeck.Count; i++) //swap from 4 to 12
+            {
+                CardData temp = cardInDeck[i];
+                int randomIndexToSwap = Random.Range(i, cardInDeck.Count);
+                cardInDeck[i] = cardInDeck[randomIndexToSwap];
+                cardInDeck[randomIndexToSwap] = temp;
+            }
+        }
+        
     }
 
     public void SelectCard(CardData card)
     {
         selectedCards.Add(card);
-        endTurnButton.interactable = false;
+        endTurnButton.interactable = false; // had to disable endturnbutton otherwise lot of bugs if we select card and end the turn
         CheckPlayCardButton();
         GameEvents.instance.CardSelected(card);
     }
-
 
     public void DeSelectCard(CardData card)
     {
         selectedCards.Remove(card);
         if (selectedCards.Count == 0)
-            endTurnButton.interactable = true;
+            endTurnButton.interactable = true; 
         CheckPlayCardButton();
         GameEvents.instance.CardDeSelected(card);
     }
 
     public void CheckPlayCardButton()
     {
-        
         selectedCardCost = 0;
         foreach (var card in selectedCards)
         {
             selectedCardCost += card.cardCost;
         }
-
+        // we need totalcardcostusedincurrentround variable to pass cases such as 2 cards in played one at a time in same round
         playCardButton.gameObject.SetActive(selectedCards.Count > 0 && selectedCardCost+totalCardCostUsedInCurrentRound <= TurnManager.Instance.currentTurn);        
     }
 

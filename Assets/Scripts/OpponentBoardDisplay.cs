@@ -1,22 +1,21 @@
-using Photon.Pun;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.UI;
 
 public class OpponentBoardDisplay : MonoBehaviour
 {
-    public Transform opponentBoardContainer;
+    public Transform contentTransformForCardsInOpponentArea;
     public GameObject faceDownCardPrefab;
     public TextMeshProUGUI opponentCost;
 
+    //this make sures cards are folded in opponent area 
     public void UpdateOpponentBoard(int cardCount, int opponentavailableCost)
     {
         opponentCost.text = opponentavailableCost.ToString();
         for (int i = 0; i < cardCount; i++)
         {
-            GameObject card = Instantiate(faceDownCardPrefab, opponentBoardContainer);
+            GameObject card = Instantiate(faceDownCardPrefab, contentTransformForCardsInOpponentArea);
             var cardUI = card.GetComponent<CardSelectHandler>();
             cardUI.costText.text = "?";
             cardUI.powerText.text = "?";
@@ -30,7 +29,7 @@ public class OpponentBoardDisplay : MonoBehaviour
     {
         
         List<GameObject> hiddenCards = new List<GameObject>();
-        foreach (Transform child in opponentBoardContainer)
+        foreach (Transform child in contentTransformForCardsInOpponentArea)
         {
             var cardUI = child.GetComponent<CardSelectHandler>();
             if (cardUI != null && cardUI.costText.text == "?")
@@ -38,8 +37,7 @@ public class OpponentBoardDisplay : MonoBehaviour
                 hiddenCards.Add(child.gameObject);
             }
         }
-
-   
+        // taking all hiddencards from hiddencards list and revealing them 
         for (int i = 0; i < cards.Count && i < hiddenCards.Count; i++)
         {
             var cardUI = hiddenCards[i].GetComponent<CardSelectHandler>();
@@ -50,7 +48,5 @@ public class OpponentBoardDisplay : MonoBehaviour
 
             hiddenCards[i].GetComponent<Button>().interactable = false;
         }
-
-        Debug.Log($"Revealed {cards.Count} opponent cards");
     }
 }

@@ -15,7 +15,7 @@ MonoBehaviour:
   id: 8
   cardName: Spy
   cardCost: 3
-  cardPower: 5
+  cardPower: 6
   ability:
-    abilityName: 2
-    abilityValue: 5
+    abilityName: 3
+    abilityValue: 2

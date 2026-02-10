@@ -26,19 +26,15 @@ public class CardSelectHandler : MonoBehaviour
     {
         if (!selected)
         {
-            rect.localScale = Vector3.one * 1.05f;
-            
+            rect.localScale = Vector3.one * 1.05f; // visual indication that card is selected
             selected = true;
-
             DeckManager.Instance.SelectCard(cardData);
         }
 
         else if (selected)
         {
             rect.localScale = Vector3.one;
-           
             selected = false;
-
             DeckManager.Instance.DeSelectCard(cardData);
         }
 

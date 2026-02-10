@@ -1,9 +1,8 @@
-using System;
 using TMPro;
 using UnityEngine;
 using Photon.Pun;
 using System.Collections.Generic;
-using System.Collections;
+
 
 public class ScoreManager : MonoBehaviour
 {
@@ -14,6 +13,8 @@ public class ScoreManager : MonoBehaviour
 
     [SerializeField] TextMeshProUGUI opponentName;
     [SerializeField] TextMeshProUGUI opponentScoreText;
+
+    //[SerializeField] GameObject mainMenu;
 
     public int myScore = 0;
     public int opponentScore = 0;
@@ -32,10 +33,25 @@ public class ScoreManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
+    private void OnEnable()
+    {
+        //GameEvents.instance.OnScoreUpdated += HandleScoreUpdate;
+        GameEvents.instance.OnGameStart += HandleGameStart;
+        GameEvents.instance.OnGameEnd += AnnounceResult;
+    }
+
+    private void OnDisable()
+    {
+        if (GameEvents.instance != null)
+        {
+            // GameEvents.instance.OnScoreUpdated -= HandleScoreUpdate;
+            GameEvents.instance.OnGameStart -= HandleGameStart;
+            GameEvents.instance.OnGameEnd -= AnnounceResult;
+        }
+    }
 
     void HandleGameStart(List<string> playerIds)
     {
-        
         myPlayerId = PhotonNetwork.LocalPlayer.ActorNumber.ToString();
 
         if (PhotonNetwork.IsMasterClient)
@@ -51,39 +67,18 @@ public class ScoreManager : MonoBehaviour
 
         UpdateScoreDisplay();
     }
-    private void OnEnable()
-    {
-        //GameEvents.instance.OnScoreUpdated += HandleScoreUpdate;
-        GameEvents.instance.OnGameStart += HandleGameStart; 
-    }
-
-    private void OnDisable()
-    {
-        if (GameEvents.instance != null)
-        {
-           // GameEvents.instance.OnScoreUpdated -= HandleScoreUpdate;
-            GameEvents.instance.OnGameStart -= HandleGameStart;
-        }
-    }
-    //public void HandleScoreUpdate(string playerId, int points)
-    //{
-    //    if (playerId == myPlayerId)
-    //        myScore += points;
-    //    else
-    //        opponentScore += points;
-    //    UpdateScoreDisplay();
-    //}
-    private void UpdateScoreDisplay()
+  
+    public void UpdateScoreDisplay()
     {
         playerScoreText.text = myScore.ToString();
         opponentScoreText.text = opponentScore.ToString() ;
     }
     public void AddScore(string playerId, int points)
     {
-
         if (playerId == myPlayerId)
         {
             myScore += points;
+            if (myScore < 0) myScore = 0; 
         }
 
         UpdateScoreDisplay();
@@ -93,31 +88,68 @@ public class ScoreManager : MonoBehaviour
             pointsEarned = points,
             playerId = playerId
         };
-       
+
         NetworkkManager.Instance.SendNetworkMessage(JsonUtility.ToJson(msg));
     }
 
+    
     public void AddScoreFromNetwork(string playerId, int points)
     {
-
         if (playerId != myPlayerId)
         {
             opponentScore += points;
+            if (opponentScore < 0) opponentScore = 0;
             UpdateScoreDisplay();
         }
 
-        //GameEvents.instance.ScoreUpdated(playerId, playerId == myPlayerId ? myScore : opponentScore);
     }
 
-    public string GetWinner()
+    //game end message
+    public void AnnounceResult()
     {
-        if (myScore > opponentScore)
-            return "You Win!";
-        else if (opponentScore > myScore)
-            return "You Lose! Better Luck Next Time";
-        else
-            return "It's a Tie";
+        if (PhotonNetwork.IsMasterClient)
+        {
+            string myResultMessage = "";
+            string opponentResultMessage = "";
+
+            if (myScore > opponentScore)
+            {
+                myResultMessage = "YOU WIN! CONGRATULATIONS";
+                opponentResultMessage = "YOU LOSE! BETTER LUCK NEXT TIME";
+            }
+            else if (opponentScore > myScore)
+            {
+                myResultMessage = "YOU LOSE! BETTER LUCK NEXT TIME";
+                opponentResultMessage = "YOU WIN! CONGRATULATIONS";
+            }
+            else
+            {
+                myResultMessage = "IT'S A TIE";
+                opponentResultMessage = "IT'S A TIE";
+            }
+
+            NetworkkManager.Instance.statusUI.gameObject.SetActive(true);
+            NetworkkManager.Instance.statusText.text = myResultMessage;
+
+            GameEndMessage message = new GameEndMessage
+            {
+                action = "gameEnd",
+                message = opponentResultMessage
+
+            };
+
+            NetworkkManager.Instance.SendNetworkMessage(JsonUtility.ToJson(message));
+        }
+
+        
     }
 
-
+    public void AnnounceResultFromNetwork(string action, string message)
+    {
+        if (!PhotonNetwork.IsMasterClient)
+        {
+            NetworkkManager.Instance.statusUI.gameObject.SetActive(true);
+            NetworkkManager.Instance.statusText.text = message;
+        }
+    }
 }

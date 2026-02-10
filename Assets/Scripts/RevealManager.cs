@@ -11,7 +11,6 @@ public class RevealManager : MonoBehaviour
     private string myPlayerId;
     private bool myCardsReceived = false;
     private bool opponentCardsReceived = false;
-    private bool hasRevealedCards = false;
 
     private void Awake()
     {
@@ -119,24 +118,15 @@ public class RevealManager : MonoBehaviour
         {
             opponentBoard.RevealOpponentCards(opponentFoldedCards);
         }
-        //if (hasRevealedCards)
-        //{
-        //    return;
-        //}
-        //hasRevealedCards = true;
-        int myTotalPower = 0;
+
         foreach (var card in DeckManager.Instance.foldedCards)
         {
-            myTotalPower += card.cardPower;
+            AbilityManager.Instance.ExecuteAbilityLocally(card, myPlayerId);
         }
-        if (myTotalPower > 0)
-        {
-            ScoreManager.Instance.AddScore(myPlayerId, myTotalPower);
-          
-        }
+
         Invoke(nameof(FinishRevealPhase), 3f);
     }
-
+   
     void FinishRevealPhase()
     {
         DeckManager.Instance.foldedCards.Clear();

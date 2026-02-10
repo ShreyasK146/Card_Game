@@ -7,11 +7,15 @@ public enum AbilityType
     GainPoints,
     StealPoints,
     DoublePower,
-    DrawExtraCard,
+    RemoveOpponentScore,
+    RemoveOpponentScorex2,
+    RemoveOpponentScorex3,
+    //DrawExtraCard,
     DiscardOpponentRandomCard,
-    DestroyOpponentCardInPlay,
+    //DestroyOpponentCardInPlay,
     TriplePower,
-    StealPointsx2
+    StealPointsx2,
+    StealPointsx3
 }
 
 [CreateAssetMenu(fileName = "Card_",menuName = "CreateObject/CardObject")]

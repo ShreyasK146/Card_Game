@@ -2,7 +2,6 @@ using Photon.Pun;
 using System;
 using System.Collections.Generic;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,7 +13,6 @@ public class TurnManager : MonoBehaviour
     private bool timerActive = false;
 
     [SerializeField] TextMeshProUGUI timerText;
-
     [SerializeField] GameObject gameScene;
     public TextMeshProUGUI turnText;
     [SerializeField] TextMeshProUGUI messageForOpponent;
@@ -40,26 +38,17 @@ public class TurnManager : MonoBehaviour
 
     private void OnEnable()
     {
-
-        //GameEvents.instance.OnTurnStart += HandleTurnStart;
         GameEvents.instance.OnGameStart += HandleGameStart;
         GameEvents.instance.OnPlayerEndedTurn += HandlePlayerEndedTurn;
     }
-
 
     private void OnDisable()
     {
         if (GameEvents.instance != null)
         {
-            //GameEvents.instance.OnTurnStart -= HandleTurnStart;
             GameEvents.instance.OnGameStart -= HandleGameStart;
             GameEvents.instance.OnPlayerEndedTurn -= HandlePlayerEndedTurn;
         }
-    }
-
-    private void HandleGameStart(List<string> playerIds)
-    {
-        StartTurn(1);
     }
 
     private void Start()
@@ -68,6 +57,25 @@ public class TurnManager : MonoBehaviour
         endturnButton.gameObject.SetActive(true);
         endturnButton.onClick.AddListener(OnEndTurnClicked);
     }
+
+    void Update()
+    {
+        if (timer > 0 && timerActive && gameScene.activeSelf)
+        {
+            timer -= Time.deltaTime;
+            timerText.text = Math.Ceiling(timer).ToString() + "s";
+        }
+        else if (timer < 0 && timerActive)
+        {
+            TurnEnd();
+        }
+    }
+
+    private void HandleGameStart(List<string> playerIds)
+    {
+        StartTurn(1);
+    }
+
     private void StartTurn(int turnNumber)
     {
         currentTurn = turnNumber;
@@ -77,8 +85,6 @@ public class TurnManager : MonoBehaviour
         playerEnded = false;
         opponentEnded = false;
 
-        //opponentavailableCostText.text = turnNumber.ToString();
-        //availableCostText.text = turnNumber.ToString(); 
         messageForOpponent.text = "";
         messageForPlayer.text = "";
 
@@ -90,20 +96,12 @@ public class TurnManager : MonoBehaviour
         endturnButton.gameObject.SetActive(true);
         endturnButton.interactable = true;
 
-        GameEvents.instance.TurnStarted(currentTurn);
+        GameEvents.instance.TurnStarted(currentTurn); 
     }
-    void Update()
-    {
 
-        if (timer > 0 && timerActive && gameScene.activeSelf )
-        {
-            timer -= Time.deltaTime;
-            timerText.text = Math.Ceiling(timer).ToString() +"s";
-        }
-        else if(timer < 0 && timerActive)
-        {
-            TurnEnd();
-        }
+    public void StartTurnFromNetwork(int turnNumber)
+    {
+        StartTurn(turnNumber);
     }
 
     public void OnEndTurnClicked()
@@ -120,35 +118,11 @@ public class TurnManager : MonoBehaviour
         EndTurnMessage msg = new EndTurnMessage
         {
             playerId = myPlayerId
-            //messageToDisplay = "Opponent ended turn. waiting for you..."
         };
 
         string json = JsonUtility.ToJson(msg);
         NetworkkManager.Instance.SendNetworkMessage(json);
     }
-
-    void TurnEnd()
-    {
-        if (timer <= 0 && !playerEnded) 
-        {
-            playerEnded = true;
-            timerActive = false;
-            //GameEvents.instance.PlayerEndedTurn("Player1");
-            //messageForPlayer.text = "ending turn. applying abilities...";
-            string myPlayerId = PhotonNetwork.LocalPlayer.ActorNumber.ToString();
-
-            EndTurnMessage msg = new EndTurnMessage
-            {
-                playerId = myPlayerId,
-                //messageToDisplay = "ending turn. applying abilities..."
-            };
-
-            string json = JsonUtility.ToJson(msg);
-            NetworkkManager.Instance.SendNetworkMessage(json);
-            //Invoke("SimulateOpponentEndTurn", 2f);
-        }
-    }
-
     private void HandlePlayerEndedTurn(string playerid)
     {
         string myPlayerId = PhotonNetwork.LocalPlayer.ActorNumber.ToString();
@@ -156,7 +130,7 @@ public class TurnManager : MonoBehaviour
         {
             playerEnded = true;
         }
-            
+
         else
         {
             opponentEnded = true;
@@ -165,23 +139,42 @@ public class TurnManager : MonoBehaviour
 
         CheckIfBothPlayersReady();
     }
-    public void UpdateOpponentMessageDisplay(string messageToDisplay)
+    void TurnEnd()
     {
-        messageForPlayer.text = messageToDisplay;
-    }
-    //void SimulateOpponentEndTurn()
-    //{
-    //    Debug.Log("Opponent ended turn (simulated)");
-    //    GameEvents.instance.PlayerEndedTurn("Player2");
-    //}
+        if (timer <= 0 && !playerEnded) 
+        {
+            playerEnded = true;
+            timerActive = false;
+            string myPlayerId = PhotonNetwork.LocalPlayer.ActorNumber.ToString();
 
+            EndTurnMessage msg = new EndTurnMessage
+            {
+                playerId = myPlayerId,
+            };
+
+            NetworkkManager.Instance.SendNetworkMessage(JsonUtility.ToJson(msg));
+        }
+    }
+
+    
     void CheckIfBothPlayersReady()
     {
         if(playerEnded && opponentEnded)
         {
-            
             messageForOpponent.text = "let the ability magic happen... going to next round...";
             messageForPlayer.text = "let the ability magic happen... going to next round...";
+
+
+            //string myPlayerId = PhotonNetwork.LocalPlayer.ActorNumber.ToString();
+            //EndTurnMessage msg = new EndTurnMessage
+            //{
+            //    playerId = myPlayerId,
+            //    messageToDisplay = "let the ability magic happen... going to next round..."
+            //};
+
+            //NetworkkManager.Instance.SendNetworkMessage(JsonUtility.ToJson(msg));
+           
+
             GameEvents.instance.AllPlayersReady(true);
             if (PhotonNetwork.IsMasterClient)
             {
@@ -191,14 +184,15 @@ public class TurnManager : MonoBehaviour
                 }
                 else
                 {
-                    GameEvents.instance.GameEnded(true);
+                    GameEvents.instance.GameEnded();
                 }
             }
         }
     }
-    public void StartTurnFromNetwork(int turnNumber)
+
+    public void UpdateOpponentMessageDisplay(string messageToDisplay)
     {
-        StartTurn(turnNumber);
+        messageForPlayer.text = messageToDisplay;
     }
 
     void GoToNextTurn()
@@ -207,7 +201,6 @@ public class TurnManager : MonoBehaviour
         {
             int nextTurn = currentTurn + 1;
 
-            // Send network message to start turn for both players
             TurnStartMessage msg = new TurnStartMessage
             {
                 turnNumber = nextTurn

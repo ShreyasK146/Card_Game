@@ -15,7 +15,7 @@ MonoBehaviour:
   id: 5
   cardName: Merchant
   cardCost: 2
-  cardPower: 5
+  cardPower: 4
   ability:
     abilityName: 1
     abilityValue: 2

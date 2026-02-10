@@ -15,7 +15,7 @@ MonoBehaviour:
   id: 10
   cardName: Champion
   cardCost: 3
-  cardPower: 6
+  cardPower: 9
   ability:
-    abilityName: 7
-    abilityValue: 3
+    abilityName: 8
+    abilityValue: 2

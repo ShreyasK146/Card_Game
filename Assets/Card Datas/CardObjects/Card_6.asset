@@ -15,7 +15,7 @@ MonoBehaviour:
   id: 6
   cardName: Gladiator
   cardCost: 2
-  cardPower: 3
+  cardPower: 4
   ability:
     abilityName: 3
     abilityValue: 2
