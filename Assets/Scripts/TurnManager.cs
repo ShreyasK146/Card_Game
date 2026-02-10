@@ -9,7 +9,7 @@ public class TurnManager : MonoBehaviour
 {
     public int currentTurn = 1;
     private int maxTurn = 6;
-    private float timer = 60;
+    private float timer = 30;
     private bool timerActive = false;
 
     [SerializeField] TextMeshProUGUI timerText;
@@ -79,7 +79,7 @@ public class TurnManager : MonoBehaviour
     private void StartTurn(int turnNumber)
     {
         currentTurn = turnNumber;
-        timer = 60f;
+        timer = 30f;
         timerActive = true;
 
         playerEnded = false;
