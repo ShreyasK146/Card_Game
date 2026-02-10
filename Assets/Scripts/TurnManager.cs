@@ -14,10 +14,13 @@ public class TurnManager : MonoBehaviour
     private bool timerActive = false;
 
     [SerializeField] TextMeshProUGUI timerText;
+
     [SerializeField] GameObject gameScene;
     public TextMeshProUGUI turnText;
+    [SerializeField] TextMeshProUGUI messageForOpponent;
+    [SerializeField] TextMeshProUGUI messageForPlayer;
     [SerializeField] Button endturnButton;
-
+    
     private bool playerEnded = false;
     private bool opponentEnded = false;
 
@@ -73,12 +76,17 @@ public class TurnManager : MonoBehaviour
 
         playerEnded = false;
         opponentEnded = false;
+
+        //opponentavailableCostText.text = turnNumber.ToString();
+        //availableCostText.text = turnNumber.ToString(); 
+        messageForOpponent.text = "";
+        messageForPlayer.text = "";
+
         if (turnNumber != 1 && DeckManager.Instance.cardInDeck.Count > 0)
         {
             turnText.text = turnNumber.ToString() + "/" + maxTurn.ToString();
         }
         
-
         endturnButton.gameObject.SetActive(true);
         endturnButton.interactable = true;
 
@@ -105,11 +113,14 @@ public class TurnManager : MonoBehaviour
         endturnButton.interactable = false;
         timerActive = false;
 
+        messageForPlayer.text = "Waiting for opponent to end turn...";
+
         string myPlayerId = PhotonNetwork.LocalPlayer.ActorNumber.ToString();
 
         EndTurnMessage msg = new EndTurnMessage
         {
             playerId = myPlayerId
+            //messageToDisplay = "Opponent ended turn. waiting for you..."
         };
 
         string json = JsonUtility.ToJson(msg);
@@ -123,11 +134,13 @@ public class TurnManager : MonoBehaviour
             playerEnded = true;
             timerActive = false;
             //GameEvents.instance.PlayerEndedTurn("Player1");
+            //messageForPlayer.text = "ending turn. applying abilities...";
             string myPlayerId = PhotonNetwork.LocalPlayer.ActorNumber.ToString();
 
             EndTurnMessage msg = new EndTurnMessage
             {
-                playerId = myPlayerId
+                playerId = myPlayerId,
+                //messageToDisplay = "ending turn. applying abilities..."
             };
 
             string json = JsonUtility.ToJson(msg);
@@ -141,15 +154,21 @@ public class TurnManager : MonoBehaviour
         string myPlayerId = PhotonNetwork.LocalPlayer.ActorNumber.ToString();
         if (playerid == myPlayerId)
         {
-            
             playerEnded = true;
         }
             
         else
+        {
             opponentEnded = true;
+            messageForOpponent.text = "Opponent ended turn...";
+        }
+
         CheckIfBothPlayersReady();
     }
-
+    public void UpdateOpponentMessageDisplay(string messageToDisplay)
+    {
+        messageForPlayer.text = messageToDisplay;
+    }
     //void SimulateOpponentEndTurn()
     //{
     //    Debug.Log("Opponent ended turn (simulated)");
@@ -161,6 +180,8 @@ public class TurnManager : MonoBehaviour
         if(playerEnded && opponentEnded)
         {
             
+            messageForOpponent.text = "let the ability magic happen... going to next round...";
+            messageForPlayer.text = "let the ability magic happen... going to next round...";
             GameEvents.instance.AllPlayersReady(true);
             if (PhotonNetwork.IsMasterClient)
             {

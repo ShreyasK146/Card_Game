@@ -140,5 +140,6 @@ public class RevealManager : MonoBehaviour
     void FinishRevealPhase()
     {
         DeckManager.Instance.foldedCards.Clear();
+
     }
 }

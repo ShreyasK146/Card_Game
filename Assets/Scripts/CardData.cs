@@ -3,12 +3,15 @@ using UnityEngine;
 
 public enum AbilityType
 {
+    BaseCard,
     GainPoints,
     StealPoints,
     DoublePower,
     DrawExtraCard,
     DiscardOpponentRandomCard,
-    DestroyOpponentCardInPlay
+    DestroyOpponentCardInPlay,
+    TriplePower,
+    StealPointsx2
 }
 
 [CreateAssetMenu(fileName = "Card_",menuName = "CreateObject/CardObject")]

@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: Card_5
   m_EditorClassIdentifier: Assembly-CSharp::CardData
   id: 5
-  cardName: name1
-  cardCost: 1
+  cardName: Merchant
+  cardCost: 2
   cardPower: 5
   ability:
-    abilityName: Discard opponents random card
+    abilityName: 1
     abilityValue: 2

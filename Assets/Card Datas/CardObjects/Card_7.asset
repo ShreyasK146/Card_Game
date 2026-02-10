@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: Card_7
   m_EditorClassIdentifier: Assembly-CSharp::CardData
   id: 7
-  cardName: name1
-  cardCost: 1
-  cardPower: 7
+  cardName: Leader
+  cardCost: 2
+  cardPower: 6
   ability:
-    abilityName: Skip opponent turn
-    abilityValue: 2
+    abilityName: 1
+    abilityValue: 5

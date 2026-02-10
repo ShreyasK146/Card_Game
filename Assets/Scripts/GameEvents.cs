@@ -11,6 +11,7 @@ public class GameEvents : MonoBehaviour
     [SerializeField] GameObject scoreManager;
     [SerializeField] GameObject revealManager;
     [SerializeField] GameObject abilityManager;
+    
     private void Awake()
     {
         
@@ -25,8 +26,13 @@ public class GameEvents : MonoBehaviour
     }
     private void Start()
     {
+        
         //calling here otherwise null exception
         deckManager.gameObject.SetActive(true);
+        foreach(CardData card in DeckManager.Instance.allCardsData)
+        {
+            Debug.Log("Card Ability: " + card.ability.abilityName + "\t" + "Card Power: " + card.cardPower + "\t" + "Card Cost: " +card.cardCost);
+        }
         turnManager.gameObject.SetActive(true);
         scoreManager.gameObject.SetActive(true);  
         revealManager.gameObject.SetActive(true);
@@ -46,6 +52,13 @@ public class GameEvents : MonoBehaviour
     public event Action<CardData> OnCardsDeSelected;
     public event Action<List<CardData>> OnCardsFolded;
     public event Action<int> OnCardsDrawn;
+
+
+    public event Action OnOpponentDisconnected;
+    public event Action OnOpponentReconnected;
+    public event Action OnPlayerReconnected;
+    public event Action OnOpponentForfeited;
+    public event Action OnMatchAbandoned;
 
     public void GameStarted(List<string> playerids)
     {
@@ -106,4 +119,29 @@ public class GameEvents : MonoBehaviour
     {
         OnCardsDrawn?.Invoke(numberOfCards);
     }
+    /*
+    public void OpponentDisconnected()
+    {
+        OnOpponentDisconnected?.Invoke();
+    }
+
+    public void OpponentReconnected()
+    {
+        OnOpponentReconnected?.Invoke();
+    }
+
+    public void PlayerReconnected()
+    {
+        OnPlayerReconnected?.Invoke();
+    }
+
+    public void OpponentForfeited()
+    {
+        OnOpponentForfeited?.Invoke();
+    }
+
+    public void MatchAbandoned()
+    {
+        OnMatchAbandoned?.Invoke();
+    }*/
 }

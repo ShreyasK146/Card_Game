@@ -1,30 +1,27 @@
-using System;
-using System.Collections.Generic;
 using Photon.Pun;
 using Photon.Realtime;
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-
 public class NetworkkManager : MonoBehaviourPunCallbacks
 {
     public static NetworkkManager Instance;
-
     [SerializeField] GameObject statusUI;
     [SerializeField] private GameObject MainScene;
     [SerializeField] private TextMeshProUGUI statusText;
-
     private int maxPlayers = 2;
     private bool isReconnecting = false;
-    [HideInInspector]public bool gameStarted = false;
-
+    [HideInInspector] public bool gameStarted = false;
     private PhotonView photonView;
-
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            DontDestroyOnLoad(statusUI);
         }
         else
         {
@@ -32,24 +29,19 @@ public class NetworkkManager : MonoBehaviourPunCallbacks
         }
         photonView = GetComponent<PhotonView>();
     }
-
     private void Start()
     {
         PhotonNetwork.AutomaticallySyncScene = true;
         PhotonNetwork.ConnectUsingSettings();
     }
-
     public override void OnConnectedToMaster()
     {
         if (PhotonNetwork.InRoom)
             return;
-
         PhotonNetwork.JoinRandomRoom();
     }
-
     public override void OnJoinedRoom()
     {
-
         if (isReconnecting)
         {
             Debug.Log("reconnected");
@@ -58,7 +50,6 @@ public class NetworkkManager : MonoBehaviourPunCallbacks
             MainScene.SetActive(true);
             return;
         }
-
         if (PhotonNetwork.CurrentRoom.PlayerCount == maxPlayers)
         {
             StartGame();
@@ -68,16 +59,15 @@ public class NetworkkManager : MonoBehaviourPunCallbacks
             //statusText.text = "Joined Room!";
             statusText.text = "Waiting For Player...";
         }
-        
+
         //Debug.Log("CountOfRooms = " + PhotonNetwork.CountOfRooms);
         //Debug.Log("CountOfPlayersInRooms  = " + PhotonNetwork.CountOfPlayersInRooms);
         //Debug.Log("CountOfPlayers = " + PhotonNetwork.CountOfPlayers);
     }
 
-    
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
-        
+
         if (PhotonNetwork.CurrentRoom.PlayerCount == maxPlayers && !gameStarted)
         {
             statusText.text = "Starting the game...";
@@ -89,35 +79,31 @@ public class NetworkkManager : MonoBehaviourPunCallbacks
         statusText.text = "Creating new room...";
         CreateRoom();
     }
-
     public void CreateRoom()
     {
         RoomOptions roomOptions = new RoomOptions();
         roomOptions.MaxPlayers = maxPlayers;
-        roomOptions.PlayerTtl = 2000; // need to change
-        roomOptions.EmptyRoomTtl = 1000; // need to change
+        roomOptions.PlayerTtl = 30000;
+        roomOptions.EmptyRoomTtl = 10000;
         PhotonNetwork.CreateRoom(null, roomOptions, null);
         //Debug.Log("Room Created?");
     }
     public override void OnDisconnected(DisconnectCause cause)
     {
-        statusUI.gameObject.SetActive(true);    
+        statusUI.gameObject.SetActive(true);
         if (cause != DisconnectCause.DisconnectByClientLogic)
         {
             Debug.Log("disconnected and tryign to join");
             isReconnecting = true;
             PhotonNetwork.ReconnectAndRejoin(); // to reconnect if ttl is not over yet
         }
-
     }
-
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
         statusUI.gameObject.SetActive(true);
         statusText.text = "Where did he go?";
-        
-    }
 
+    }
     private void StartGame()
     {
         statusText.text = "Starting game...";
@@ -179,16 +165,14 @@ public class NetworkkManager : MonoBehaviourPunCallbacks
 
     private void HandleSyncBoardMessage(string jsonMessage)
     {
-        //SyncBoardMessage msg = JsonUtility.FromJson<SyncBoardMessage>(jsonMessage);
         
-
         SyncBoardMessage msg = JsonUtility.FromJson<SyncBoardMessage>(jsonMessage);
         if(msg.senderActorNumber != PhotonNetwork.LocalPlayer.ActorNumber)
         {
             OpponentBoardDisplay opponentBoard = FindFirstObjectByType<OpponentBoardDisplay>();
             if (opponentBoard != null)
             {
-                opponentBoard.UpdateOpponentBoard(msg.cardCount);
+                opponentBoard.UpdateOpponentBoard(msg.cardCount, msg.availableCost);
             }
         }
     }
@@ -203,6 +187,13 @@ public class NetworkkManager : MonoBehaviourPunCallbacks
     {
         EndTurnMessage msg = JsonUtility.FromJson<EndTurnMessage>(jsonMessage);
         GameEvents.instance.PlayerEndedTurn(msg.playerId);
+
+        // Update message display (only if it's opponent's message)
+        string myPlayerId = PhotonNetwork.LocalPlayer.ActorNumber.ToString();
+        if (msg.playerId != myPlayerId)
+        {
+            TurnManager.Instance.UpdateOpponentMessageDisplay(msg.messageToDisplay);
+        }
     }
 }
 
@@ -218,6 +209,7 @@ public class EndTurnMessage
 {
     public string action = "endTurn";
     public string playerId;
+    public string messageToDisplay;
 }
 
 [System.Serializable]
@@ -226,6 +218,7 @@ public class SyncBoardMessage
     public string action = "syncBoard";
     public int cardCount;
     public int senderActorNumber;
+    public int availableCost;
 }
 
 [System.Serializable]

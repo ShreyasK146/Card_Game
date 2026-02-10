@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Card_2
   m_EditorClassIdentifier: Assembly-CSharp::CardData
   id: 2
-  cardName: name2
-  cardCost: 2
+  cardName: Apprentice
+  cardCost: 1
   cardPower: 2
   ability:
     abilityName: 1

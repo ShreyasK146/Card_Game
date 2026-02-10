@@ -112,11 +112,11 @@ public class ScoreManager : MonoBehaviour
     public string GetWinner()
     {
         if (myScore > opponentScore)
-            return myPlayerId;
+            return "You Win!";
         else if (opponentScore > myScore)
-            return "opponent";
+            return "You Lose! Better Luck Next Time";
         else
-            return "tie";
+            return "It's a Tie";
     }
 
 

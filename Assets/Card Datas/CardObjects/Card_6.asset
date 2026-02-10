@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: Card_6
   m_EditorClassIdentifier: Assembly-CSharp::CardData
   id: 6
-  cardName: name1
+  cardName: Gladiator
   cardCost: 2
-  cardPower: 6
+  cardPower: 3
   ability:
-    abilityName: 1
+    abilityName: 3
     abilityValue: 2

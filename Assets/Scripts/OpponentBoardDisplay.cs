@@ -1,5 +1,6 @@
 using Photon.Pun;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UI;
@@ -8,9 +9,11 @@ public class OpponentBoardDisplay : MonoBehaviour
 {
     public Transform opponentBoardContainer;
     public GameObject faceDownCardPrefab;
+    public TextMeshProUGUI opponentCost;
 
-    public void UpdateOpponentBoard(int cardCount)
+    public void UpdateOpponentBoard(int cardCount, int opponentavailableCost)
     {
+        opponentCost.text = opponentavailableCost.ToString();
         for (int i = 0; i < cardCount; i++)
         {
             GameObject card = Instantiate(faceDownCardPrefab, opponentBoardContainer);
