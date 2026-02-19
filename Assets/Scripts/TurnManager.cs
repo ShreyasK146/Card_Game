@@ -1,5 +1,5 @@
 using Photon.Pun;
-using System;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -9,8 +9,9 @@ public class TurnManager : MonoBehaviour
 {
     public int currentTurn = 1;
     private int maxTurn = 6;
-    private float timer = 30;
-    private bool timerActive = false;
+    [HideInInspector] public float timer = 30;
+    [HideInInspector] public bool timerActive = false;
+    
 
     [SerializeField] TextMeshProUGUI timerText;
     [SerializeField] GameObject gameScene;
@@ -19,8 +20,14 @@ public class TurnManager : MonoBehaviour
     [SerializeField] TextMeshProUGUI messageForPlayer;
     [SerializeField] Button endturnButton;
     
+    
     private bool playerEnded = false;
     private bool opponentEnded = false;
+
+    [HideInInspector]public bool mastersTurn = true;
+    [HideInInspector] public bool opponentTurn = false;
+    //[HideInInspector] public bool lastTurnEnded = false;
+
 
     public static TurnManager Instance;
     private void Awake()
@@ -39,17 +46,28 @@ public class TurnManager : MonoBehaviour
     private void OnEnable()
     {
         GameEvents.instance.OnGameStart += HandleGameStart;
+        //GameEvents.instance.OnTurnStart += HandleTurnStart;
+        //GameEvents.instance.OnTurnEnd += HandleTurnEnd;
         GameEvents.instance.OnPlayerEndedTurn += HandlePlayerEndedTurn;
     }
+
+
 
     private void OnDisable()
     {
         if (GameEvents.instance != null)
         {
             GameEvents.instance.OnGameStart -= HandleGameStart;
+            //GameEvents.instance.OnTurnStart -= HandleTurnStart;
+            //GameEvents.instance.OnTurnEnd -= HandleTurnEnd;
             GameEvents.instance.OnPlayerEndedTurn -= HandlePlayerEndedTurn;
         }
     }
+
+    //private void HandleTurnStart(int obj)
+    //{
+        
+    //}
 
     private void Start()
     {
@@ -63,7 +81,7 @@ public class TurnManager : MonoBehaviour
         if (timer > 0 && timerActive && gameScene.activeSelf)
         {
             timer -= Time.deltaTime;
-            timerText.text = Math.Ceiling(timer).ToString() + "s";
+            timerText.text = System.Math.Ceiling(timer).ToString() + "s";
         }
         else if (timer < 0 && timerActive)
         {
@@ -78,6 +96,25 @@ public class TurnManager : MonoBehaviour
 
     private void StartTurn(int turnNumber)
     {
+        //if (PhotonNetwork.IsMasterClient)
+        //{
+        //    if (ScoreManager.Instance.myScore > ScoreManager.Instance.opponentScore)
+        //    {
+        //        Debug.Log("masters turn now");
+        //        TurnManager.Instance.mastersTurn = true;
+        //    }
+        //    else if (ScoreManager.Instance.myScore < ScoreManager.Instance.opponentScore)
+        //    {
+        //        Debug.Log("opponents turn now");
+        //        TurnManager.Instance.mastersTurn = false;
+        //    }
+        //    else
+        //    {
+        //        int i = Random.Range(0, 2);
+        //        Debug.Log("score is tie picking random = " + i);
+        //        TurnManager.Instance.mastersTurn = i == 1 ? true : false;
+        //    }
+        //}
         currentTurn = turnNumber;
         timer = 30f;
         timerActive = true;
@@ -99,8 +136,10 @@ public class TurnManager : MonoBehaviour
         GameEvents.instance.TurnStarted(currentTurn); 
     }
 
-    public void StartTurnFromNetwork(int turnNumber)
+    public void StartTurnFromNetwork(int turnNumber, int count)
     {
+        //DeckManager.Instance.countOfAllFoldedCardsPerRound = count;
+
         StartTurn(turnNumber);
     }
 
@@ -161,34 +200,26 @@ public class TurnManager : MonoBehaviour
     {
         if(playerEnded && opponentEnded)
         {
+
             messageForOpponent.text = "let the ability magic happen... going to next round...";
             messageForPlayer.text = "let the ability magic happen... going to next round...";
-
-
-            //string myPlayerId = PhotonNetwork.LocalPlayer.ActorNumber.ToString();
-            //EndTurnMessage msg = new EndTurnMessage
-            //{
-            //    playerId = myPlayerId,
-            //    messageToDisplay = "let the ability magic happen... going to next round..."
-            //};
-
-            //NetworkkManager.Instance.SendNetworkMessage(JsonUtility.ToJson(msg));
-           
 
             GameEvents.instance.AllPlayersReady(true);
             if (PhotonNetwork.IsMasterClient)
             {
-                if (currentTurn < maxTurn)
+                if (currentTurn <= maxTurn)
                 {
                     Invoke("GoToNextTurn", 4f);
                 }
-                else
-                {
-                    GameEvents.instance.GameEnded();
-                }
+               
             }
         }
     }
+
+    //private IEnumerator WaitForSomeTimeToCalculateTheWinner()
+    //{
+    //    yield return new WaitForSeconds(4f);
+    //}
 
     public void UpdateOpponentMessageDisplay(string messageToDisplay)
     {
@@ -200,14 +231,26 @@ public class TurnManager : MonoBehaviour
         if (PhotonNetwork.IsMasterClient)
         {
             int nextTurn = currentTurn + 1;
-
-            TurnStartMessage msg = new TurnStartMessage
+            if(nextTurn == 7)
             {
-                turnNumber = nextTurn
-            };
+                GameEvents.instance.GameEnded();
+            }
+            else
+            {
+                TurnStartMessage msg = new TurnStartMessage
+                {
+                    turnNumber = nextTurn,
+                    count = 0
+                };
 
-            string json = JsonUtility.ToJson(msg);
-            NetworkkManager.Instance.SendNetworkMessage(json);
+                string json = JsonUtility.ToJson(msg);
+                NetworkkManager.Instance.SendNetworkMessage(json);
+            }
+                //DeckManager.Instance.countOfAllFoldedCardsPerRound = 0;
+
         }
+        
     }
+
+
 }

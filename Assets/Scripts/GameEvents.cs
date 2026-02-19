@@ -116,28 +116,4 @@ public class GameEvents : MonoBehaviour
     }
 
     //...............................................................//
-    public void OpponentDisconnected()
-    {
-        OnOpponentDisconnected?.Invoke();
-    }
-
-    public void OpponentReconnected()
-    {
-        OnOpponentReconnected?.Invoke();
-    }
-
-    public void PlayerReconnected()
-    {
-        OnPlayerReconnected?.Invoke();
-    }
-
-    public void OpponentForfeited()
-    {
-        OnOpponentForfeited?.Invoke();
-    }
-
-    public void MatchAbandoned()
-    {
-        OnMatchAbandoned?.Invoke();
-    }
 }

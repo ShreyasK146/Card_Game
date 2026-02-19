@@ -26,6 +26,7 @@ public class CardData : ScriptableObject
     public int cardCost;
     public int cardPower;
     public AbilityData ability;
+    
 }
 [System.Serializable]
 public class AbilityData

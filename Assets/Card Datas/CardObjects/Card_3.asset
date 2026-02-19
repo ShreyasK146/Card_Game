@@ -17,5 +17,5 @@ MonoBehaviour:
   cardCost: 1
   cardPower: 2
   ability:
-    abilityName: 1
+    abilityName: 2
     abilityValue: 2

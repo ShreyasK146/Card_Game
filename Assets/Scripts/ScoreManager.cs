@@ -53,7 +53,7 @@ public class ScoreManager : MonoBehaviour
     void HandleGameStart(List<string> playerIds)
     {
         myPlayerId = PhotonNetwork.LocalPlayer.ActorNumber.ToString();
-
+       
         if (PhotonNetwork.IsMasterClient)
         {
             playerName.text = "Player One";
@@ -73,45 +73,61 @@ public class ScoreManager : MonoBehaviour
         playerScoreText.text = myScore.ToString();
         opponentScoreText.text = opponentScore.ToString() ;
     }
-    public void AddScore(string playerId, int points)
+    public void AddScore(string playerId, int point,int opponentPoint)
     {
-        if (playerId == myPlayerId)
+        //if (playerId == myPlayerId)
+        //{
+        //    myScore = points;
+        //    if (myScore < 0) myScore = 0; 
+        //}
+
+        //UpdateScoreDisplay();
+        if(playerId == myPlayerId)
         {
-            myScore += points;
-            if (myScore < 0) myScore = 0; 
+            Debug.Log("myScore = " + ScoreManager.Instance.myScore + "\t opponentScore = " + ScoreManager.Instance.opponentScore);
+            ScoreUpdateMessage msg = new ScoreUpdateMessage
+            {
+                action = "scoreUpdate",
+                pointsEarnedByPlayer = point,
+                pointsForOpponent = opponentPoint,
+                playerId = playerId
+            };
+            //ScoreUpdateMessage msgToUpdateOpponentScoreOnOpponentScene = new ScoreUpdateMessage
+            //{
+            //    action = "scoreUpdate",
+            //    pointsEarned = points,
+            //    playerId = playerId
+            //};
+            NetworkkManager.Instance.SendNetworkMessage(JsonUtility.ToJson(msg));
+            //NetworkkManager.Instance.SendNetworkMessage(JsonUtility.ToJson(msgToUpdateOpponentScoreOnOpponentScene));
         }
 
-        UpdateScoreDisplay();
-        ScoreUpdateMessage msg = new ScoreUpdateMessage
-        {
-            action = "scoreUpdate",
-            pointsEarned = points,
-            playerId = playerId
-        };
-
-        NetworkkManager.Instance.SendNetworkMessage(JsonUtility.ToJson(msg));
     }
 
     
-    public void AddScoreFromNetwork(string playerId, int points)
+    public void AddScoreFromNetwork(string playerId, int opponnetPoint,int myPoint)
     {
         if (playerId != myPlayerId)
         {
-            opponentScore += points;
-            if (opponentScore < 0) opponentScore = 0;
+            opponentScore = opponnetPoint;
+            myScore = myPoint;
+            Debug.Log("myScore = " + ScoreManager.Instance.myScore + "\t opponentScore = " + ScoreManager.Instance.opponentScore);
+            //if (opponentScore < 0) opponentScore = 0;
             UpdateScoreDisplay();
         }
+
 
     }
 
     //game end message
     public void AnnounceResult()
     {
+        Debug.Log("myscore = " + myScore + "opponent score = " + opponentScore);
         if (PhotonNetwork.IsMasterClient)
         {
             string myResultMessage = "";
             string opponentResultMessage = "";
-
+            
             if (myScore > opponentScore)
             {
                 myResultMessage = "YOU WIN! CONGRATULATIONS";
@@ -150,6 +166,7 @@ public class ScoreManager : MonoBehaviour
         {
             NetworkkManager.Instance.statusUI.gameObject.SetActive(true);
             NetworkkManager.Instance.statusText.text = message;
+
         }
     }
 }

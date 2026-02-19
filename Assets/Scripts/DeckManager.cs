@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using Photon.Pun;
 using System.Collections.Generic;
 using TMPro;
@@ -15,6 +16,8 @@ public class DeckManager : MonoBehaviour
     public List<CardData> selectedCards = new List<CardData>(); // these are selected card to play 
     public List<CardData> foldedCards = new List<CardData>(); // folded cards that will be revealed after both end turn
     public List<CardData> allPlayedCards = new List<CardData>(); // this is used to make sure cards are accumulated correctly after each round
+    //public List<CardData> allFoldedCards = new List<CardData>();
+
 
     [SerializeField] GameObject cardGameObject;
     [SerializeField] private Transform contentTransformForCardsInHand; 
@@ -29,7 +32,9 @@ public class DeckManager : MonoBehaviour
     //public int displayedCardCount = 0;
     int foldedCardCount = 0;
     int randomizeCalled = 0;
-
+    //[HideInInspector] public int countOfAllFoldedCardsPerRound = 0;
+    public int countOfAllFoldedCardsInPlayerArea = 0;
+    public int countOfAllFoldedCardsInOpponentArea = 0;
 
     void Awake()
     {
@@ -77,6 +82,7 @@ public class DeckManager : MonoBehaviour
     }
     public void HandleTurnStart(int turnNumber)
     {
+        countOfAllFoldedCardsInPlayerArea = 0; countOfAllFoldedCardsInOpponentArea = 0;
         if (turnNumber > 1 && cardInDeck.Count > 0)
         {
             totalCardCostUsedInCurrentRound = 0;
@@ -87,17 +93,51 @@ public class DeckManager : MonoBehaviour
 
         }
     }
-
+    private void Update()
+    {
+        //Debug.Log("count of player selected card per round = " + countOfAllFoldedCardsInPlayerArea + '\t' + "count of opponent selected card per round = " + countOfAllFoldedCardsInOpponentArea);
+    }
     public void PlayCardButtonClicked()
     {
+        string myplayerId = PhotonNetwork.LocalPlayer.ActorNumber.ToString();
         //normal foreach would give error because of how enumeration works so had to use normal one with reverse. maybe there's way
         for (int i = selectedCards.Count - 1; i >= 0; i--)
         {
             foldedCards.Add(selectedCards[i]);
             allPlayedCards.Add(selectedCards[i]);
             cardInHand.Remove(selectedCards[i]);
+            //allFoldedCards.Add(selectedCards[i]);
+        }
+        //if(myplayerId != GetOpponentID())
+            //countOfAllFoldedCardsPerRound = foldedCards.Count;
+
+        if(PhotonNetwork.IsMasterClient)
+        {
+            countOfAllFoldedCardsInPlayerArea += selectedCards.Count;
+            CounterUpdateMessage counterUpdateMessage = new CounterUpdateMessage
+            {
+                action = "counterUpdate",
+                playerId = PhotonNetwork.LocalPlayer.ActorNumber.ToString(),
+                counter = countOfAllFoldedCardsInPlayerArea
+            };
+            NetworkkManager.Instance.SendNetworkMessage(JsonUtility.ToJson(counterUpdateMessage));
+        }
+        else
+        {
+            countOfAllFoldedCardsInOpponentArea += selectedCards.Count;
+            CounterUpdateMessage counterUpdateMessage = new CounterUpdateMessage
+            {
+                action = "counterUpdate",
+                playerId = PhotonNetwork.LocalPlayer.ActorNumber.ToString(),
+                counter = countOfAllFoldedCardsInOpponentArea
+            };
+            NetworkkManager.Instance.SendNetworkMessage(JsonUtility.ToJson(counterUpdateMessage));
         }
 
+        
+
+
+        
         totalCardCostUsedInCurrentRound += selectedCardCost; 
         selectedCards.Clear();
         RefreshCardsInHand();
@@ -118,7 +158,33 @@ public class DeckManager : MonoBehaviour
         NetworkkManager.Instance.SendNetworkMessage(JsonUtility.ToJson(msg));
         endTurnButton.interactable =true;
     }
+    private string GetOpponentID()
+    {
+        foreach (var player in PhotonNetwork.PlayerList)
+        {
+            if (player != PhotonNetwork.LocalPlayer)
+            {
+                Debug.Log("we found opponent");
+                return player.ActorNumber.ToString();
+            }
 
+        }
+        return "";
+    }
+    public void CounterUpdatesFromNetwork(string playerId, int counter)
+    {
+        string myPlayerId = PhotonNetwork.LocalPlayer.ActorNumber.ToString();
+        //Debug.Log("what ?" + count);
+        if (playerId != myPlayerId)
+        {
+            if(PhotonNetwork.IsMasterClient)
+                countOfAllFoldedCardsInOpponentArea = counter;
+            else
+                countOfAllFoldedCardsInPlayerArea = counter;
+        }
+        //Debug.Log("how ?" + countOfAllFoldedCardsPerRound);
+
+    }
     public void RefreshCardsInPlayerCardArea() 
     {
         int currentDisplayCount = contentTransformForCardsInPlayerArea.childCount;
@@ -181,6 +247,7 @@ public class DeckManager : MonoBehaviour
         GameEvents.instance.CardDrawn(cardCount);
     }
 
+   
     private void RandomizeCardSelection()
     {
         if(randomizeCalled == 0)
